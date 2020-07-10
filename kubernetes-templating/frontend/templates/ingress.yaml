@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  name: frontend
+  namespace: hipster-shop
+spec:
+  rules:
+    - host: shop.autosys.tk
+      http:
+        paths:
+          - backend:
+              serviceName: frontend
+              servicePort: {{ .Values.service.port }}
+            path: /
+  tls:
+    - hosts:
+        - shop.autosys.tk
+      secretName: shop.autosys.tk
