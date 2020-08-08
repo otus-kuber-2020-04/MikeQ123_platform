@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:    
+  name: nginx-monitoring
+spec:
+  replicas: 3
+  selector:  
+    matchLabels:
+      app: nginx
+  template:  
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      securityContext:
+        runAsUser: 0
+      containers:    
+        - name: nginx
+          image: mikeq123/nginx-monitoring
+          ports:
+          - containerPort: 8080
+        - name: nginx-prometheus-exporter
+          image: nginx/nginx-prometheus-exporter:latest
+          args:
+          - -web.listen-address
+          - :3333
+          - -nginx.scrape-uri
+          - http://127.0.0.1:8080/basic_status
+          ports:
+          - name: prometheus
+            containerPort: 3333
