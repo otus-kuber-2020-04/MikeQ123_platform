@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-cert-renew-config
+  namespace: vault
+data:
+  vault-agent-config.hcl: |
+    # Comment this out if running as sidecar instead of initContainer
+    exit_after_auth = true
+
+    pid_file = "/home/vault/pidfile"
+
+    auto_auth {
+        method "kubernetes" {
+            mount_path = "auth/kubernetes"
+            config = {
+                role = "cert-issue-role"
+            }
+        }
+
+        sink "file" {
+            config = {
+                path = "/home/vault/.vault-token"
+            }
+        }
+    }
+
+  consul-template-config.hcl: |
+    vault {
+      renew_token = false
+      vault_agent_token_file = "/home/vault/.vault-token"
+      retry {
+        backoff = "1s"
+      }
+    }
+
+    template {
+        contents = "{{ with secret \"pki_int/issue/example-dot-ru\" \"common_name=test.example.ru\" \"ttl=2m\"}}{{ .Data.certificate }}{{ end }}"
+        destination="/etc/secrets/tls.crt"
+        command="sh -c 'killall -s HUP nginx || true'"
+    }
+    template {
+        contents = "{{ with secret \"pki_int/issue/example-dot-ru\" \"common_name=test.example.ru\" \"ttl=2m\"}}{{ .Data.private_key }}{{ end }}"
+        destination="/etc/secrets/tls.key"
+    }
+    template {
+        contents = "{{ with secret \"pki_int/issue/example-dot-ru\" \"common_name=test.example.ru\" \"ttl=2m\"}}{{ .Data.issuing_ca }}{{ end }}"
+        destination="/etc/secrets/int_ca.crt"
+    }
+
+  nginx_ssl.conf: |
+    server {
+      listen              443 ssl;
+      server_name         test.example.ru;
+      ssl_certificate     /etc/nginx/ssl/tls.crt;
+      ssl_certificate_key /etc/nginx/ssl/tls.key;
+      ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+      ssl_ciphers         HIGH:!aNULL:!MD5;
+
+      location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+      }
+    }
