@@ -1,0 +1,8 @@
+#!/bin/bash
+git clone --depth 1 https://github.com/kubernetes-sigs/kubespray.git ../infra_playbooks/kubespray
+ansible-playbook -i ${inventory_filename} ../infra_playbooks/wait_for_hosts.yaml --private-key=${private_key_path}
+ansible-playbook -i ${inventory_filename} ../infra_playbooks/mount_attached_disks.yaml --private-key=${private_key_path}
+ansible-playbook -i ${inventory_filename} ../infra_playbooks/kubespray/cluster.yml -b -v --private-key=${private_key_path} --extra-vars=@custom_cluster_settings.yml
+rm -rf ../infra_playbooks/kubespray
+ansible-playbook -i ${inventory_filename} ../infra_playbooks/kubespray/get_kubecluster_config.yaml -b -v --private-key=${private_key_path}
+

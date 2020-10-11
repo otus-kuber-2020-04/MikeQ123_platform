@@ -1,0 +1,30 @@
+- hosts: all
+  gather_facts: no
+  tasks: 
+    - name: Create filesystem on attached disks
+      filesystem:
+        fstype: ext4
+        dev: "/dev/disk/by-id/google-{{ item }}"
+      with_items:
+        - data
+        - docker
+
+    - name: Create mount points
+      file:
+        path: "/var/lib/{{ item }}"
+        state: directory
+        mode: '0777'
+      with_items:
+        - data
+        - docker
+
+    - name: Mount attached disks
+      mount:
+        path: "/var/lib/{{ item }}"
+        src: "/dev/disk/by-id/google-{{ item }}"
+        fstype: ext4
+        state: mounted
+      with_items:
+        - data
+        - docker
+    

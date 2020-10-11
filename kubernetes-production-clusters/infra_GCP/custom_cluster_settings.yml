@@ -1,0 +1,58 @@
+---
+## There are some changes specific to the cloud providers
+## for instance we need to encapsulate packets with some network plugins
+## If set the possible values are either 'gce', 'aws', 'azure', 'openstack', 'vsphere', 'oci', or 'external'
+## When openstack is used make sure to source in the openstack credentials
+## like you would do when using openstack-client before starting the playbook.
+cloud_provider: gce
+
+# Disable nodelocaldns due to issue:
+# https://github.com/kubernetes-sigs/kubespray/issues/4298
+# https://github.com/kubernetes-sigs/kubespray/issues/5757
+enable_nodelocaldns: false
+
+boostrap_os: ubuntu
+# устанавливаем helm на ноды
+helm_enabled: true
+
+# Устанавливаем flannel
+kube_network_plugin: flannel
+
+# Rancher Local Path Provisioner
+local_path_provisioner_enabled: true
+local_path_provisioner_namespace: "local-path-storage"
+local_path_provisioner_storage_class: "local-path"
+local_path_provisioner_reclaim_policy: Delete
+local_path_provisioner_claim_root: /var/lib/data
+local_path_provisioner_debug: false
+local_path_provisioner_image_repo: "rancher/local-path-provisioner"
+# версия "v0.0.17" не заработала. Хочет какой-то CM.  
+local_path_provisioner_image_tag: "v0.0.14"
+local_path_provisioner_helper_image_repo: "busybox"
+local_path_provisioner_helper_image_tag: "latest"
+
+
+# Nginx Ingress
+ingress_nginx_enabled: true
+ingress_nginx_host_network: true
+ingress_publish_status_address: ""
+ingress_nginx_nodeselector:
+  kubernetes.io/os: "linux"
+ingress_nginx_tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Equal"
+    value: ""
+    effect: "NoSchedule"
+ingress_nginx_namespace: "ingress-nginx"
+ingress_nginx_insecure_port: 80
+ingress_nginx_secure_port: 443
+ingress_nginx_configmap:
+  map-hash-bucket-size: "128"
+  ssl-protocols: "TLSv1.1 TLSv1.2"
+# ingress_nginx_configmap_tcp_services:
+#   9000: "default/example-go:8080"
+# ingress_nginx_configmap_udp_services:
+#   53: "kube-system/coredns:53"
+# ingress_nginx_extra_args:
+#   - --default-ssl-certificate=default/foo-tls
+
