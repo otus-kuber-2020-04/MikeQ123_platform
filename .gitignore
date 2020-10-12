@@ -1,2 +1,6 @@
 .idea
-
+variables.auto.tfvars
+kube-cluster-admin.conf
+.terraform
+terraform.tfstate
+terraform.tfstate.*

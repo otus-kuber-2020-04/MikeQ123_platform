@@ -1,0 +1,16 @@
+- hosts: kube-master[0]
+  gather_facts: no
+  tasks:
+    - name: Replace server local IP to public
+      replace:
+        path: /etc/kubernetes/admin.conf
+        regexp: '(\s+)server: https://(.*):6443$'
+        replace: '\1server: https://{{ hostvars[groups["kube-master"][0]].ansible_host }}:6443'
+        backup: yes
+
+    - name: Copy remote /etc/kubernetes/admin.conf to kube-cluster-admin.conf
+      fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: ../kube-cluster-admin.conf
+        flat: yes
+ 

@@ -1,0 +1,18 @@
+[all]
+%{ for string in nodes_strings ~} ${string}
+%{ endfor ~}
+[kube-master]
+%{ for string in master_strings ~} ${string}
+%{ endfor ~}
+[etcd]
+%{ for string in master_strings ~} ${string}
+%{ endfor ~}
+[kube-node]
+%{ for string in worker_strings ~} ${string}
+%{ endfor ~}
+[calico-rr]
+
+[k8s-cluster:children]
+kube-master
+kube-node
+calico-rr
